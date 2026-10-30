@@ -11,7 +11,7 @@
  *   type: custom:power-flow-phases-card   (legacy alias: custom:phase-power-flow-card)
  */
 
-const PPFC_VERSION = '0.9.0';
+const PPFC_VERSION = '0.1.0';
 
 // AU red / white / blue; L2 follows the theme text colour (white-ish on dark themes, black-ish on light)
 const PPFC_PHASE_COLORS = ['#e53935', 'var(--primary-text-color, #212121)', '#1e88e5'];
