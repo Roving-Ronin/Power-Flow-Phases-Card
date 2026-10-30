@@ -1,0 +1,32 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Lint and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Syntax check
+        run: node --check dist/power-flow-phases-card.js
+
+      - name: hacs.json is valid and points at the card
+        run: |
+          FILE=$(jq -er '.filename' hacs.json)
+          jq -er '.name' hacs.json > /dev/null
+          test -f "dist/$FILE" || { echo "::error::hacs.json filename '$FILE' not found in dist/"; exit 1; }
+
+      - name: Unit tests
+        run: node --test tests/*.test.mjs

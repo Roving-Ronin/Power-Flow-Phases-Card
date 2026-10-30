@@ -1,0 +1,48 @@
+name: Bug report
+description: Something isn't working as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What you expected, and what happened instead. A screenshot of the card helps.
+    validations:
+      required: true
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      placeholder: "2026.11.0"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Card version
+      description: Shown in the card's bottom-right corner, and in the browser console as POWER-FLOW-PHASES-CARD.
+      placeholder: "0.9.0"
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Card configuration
+      description: The card's YAML (from the card editor's code view).
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: states
+    attributes:
+      label: Relevant entity states
+      description: >
+        From Developer Tools → States, the state and unit of the entities involved
+        (e.g. grid, battery and phase power sensors).
+      render: text
+  - type: textarea
+    id: console
+    attributes:
+      label: Browser console errors
+      description: Any errors in the browser's developer console (F12 → Console).
+      render: text

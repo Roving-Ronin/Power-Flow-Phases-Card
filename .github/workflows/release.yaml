@@ -1,0 +1,79 @@
+name: Release
+
+# Runs when a GitHub release is published. The release tag is the version:
+#   1. Takes the version from the tag (v0.9.0 -> 0.9.0).
+#   2. Writes it into the card (PPFC_VERSION, shown in the card's corner and the
+#      browser console), then attaches power-flow-phases-card.js to the release.
+#      HACS / the Marketplace install the release asset first, and the download
+#      badge counts it.
+#   3. Commits the same version back to the default branch, so dist/ stays in
+#      step. Nobody needs to edit the version by hand.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+env:
+  CARD: dist/power-flow-phases-card.js
+
+jobs:
+  release:
+    name: Build and attach power-flow-phases-card.js
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the release tag
+        uses: actions/checkout@v7
+
+      - name: Version from the release tag
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION="${TAG#v}"
+          if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([.-]?(a|b|rc|beta|dev)[0-9]*)?$'; then
+            echo "::error::Release tag '$TAG' isn't a version. Use a tag like v0.9.0 (or 0.9.0, v0.9.0b1)."
+            exit 1
+          fi
+          echo "Release version: $VERSION"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Write the version into the card
+        run: |
+          sed -i -E "s/^const PPFC_VERSION = '[^']*';/const PPFC_VERSION = '${VERSION}';/" "$CARD"
+          grep -q "^const PPFC_VERSION = '${VERSION}';" "$CARD" || { echo "::error::Couldn't set PPFC_VERSION in $CARD"; exit 1; }
+          node --check "$CARD"
+
+      - name: Attach the card to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" "$CARD" --clobber
+
+  sync-version:
+    name: Commit the version to ${{ github.event.repository.default_branch }}
+    needs: release
+    runs-on: ubuntu-latest
+    # Pre-releases (e.g. betas) don't move the default branch's version
+    if: ${{ !github.event.release.prerelease }}
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Commit the card version if it changed
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION="${TAG#v}"
+          sed -i -E "s/^const PPFC_VERSION = '[^']*';/const PPFC_VERSION = '${VERSION}';/" "$CARD"
+          if git diff --quiet -- "$CARD"; then
+            echo "Card already at $VERSION"
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "Set card version to $VERSION (release $TAG)" -- "$CARD"
+          if ! git push -q origin "HEAD:${{ github.event.repository.default_branch }}"; then
+            echo "::warning::Couldn't push the version bump (branch protection?). The release asset is correct; dist/ on the default branch still shows the old version."
+          fi

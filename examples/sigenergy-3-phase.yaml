@@ -1,0 +1,102 @@
+type: custom:power-flow-phases-card
+title: Power Flow
+energy_dashboard: true
+energy_period: today
+unmeasured_threshold: 1
+entities:
+  solar:
+    power: sensor.sigen_plant_pv_power
+    energy: sensor.sigen_plant_daily_pv_energy
+    strings:
+      count: 4
+      power: sensor.sigen_inverter_pv{n}_power
+      voltage: sensor.sigen_inverter_pv{n}_voltage
+      current: sensor.sigen_inverter_pv{n}_current
+      energy: sensor.sigen_inverter_pv{n}_daily_energy
+      total: sensor.sigen_inverter_pv{n}_accumulated_energy
+  inverter:
+    power: sensor.sigen_plant_plant_active_power
+    energy:
+      - sensor.sigen_inverter_phase_a_energy_daily
+      - sensor.sigen_inverter_phase_b_energy_daily
+      - sensor.sigen_inverter_phase_c_energy_daily
+  battery:
+    power: sensor.sigen_plant_battery_power
+    invert: true
+    soc: sensor.sigen_plant_battery_state_of_charge
+    energy_charge: sensor.sigen_plant_daily_battery_charge_energy
+    energy_discharge: sensor.sigen_plant_daily_battery_discharge_energy
+  grid:
+    power: sensor.sigen_plant_grid_active_power
+    energy_import: sensor.sigen_plant_daily_grid_import_energy
+    energy_export: sensor.sigen_plant_daily_grid_export_energy
+  home:
+    power: sensor.sigen_plant_consumed_power
+    energy: sensor.sigen_plant_daily_load_consumption
+phases:
+  - name: Phase A (L1)
+    grid:
+      power: sensor.sigen_plant_grid_phase_a_active_power
+      energy_import: sensor.sigen_plant_grid_import_energy_phase_a
+      energy_export: sensor.sigen_plant_grid_export_energy_phase_a
+    load:
+      power: sensor.sigen_plant_consumed_power_phase_a
+      energy: sensor.sigen_plant_consumed_energy_phase_a_daily
+    inverter:
+      power: sensor.sigen_plant_phase_a_active_power
+      energy: sensor.sigen_inverter_phase_a_energy_daily
+      voltage: sensor.sigen_inverter_phase_a_voltage
+      current: sensor.sigen_inverter_phase_a_current
+  - name: Phase B (L2)
+    grid:
+      power: sensor.sigen_plant_grid_phase_b_active_power
+      energy_import: sensor.sigen_plant_grid_import_energy_phase_b
+      energy_export: sensor.sigen_plant_grid_export_energy_phase_b
+    load:
+      power: sensor.sigen_plant_consumed_power_phase_b
+      energy: sensor.sigen_plant_consumed_energy_phase_b_daily
+    inverter:
+      power: sensor.sigen_plant_phase_b_active_power
+      energy: sensor.sigen_inverter_phase_b_energy_daily
+      voltage: sensor.sigen_inverter_phase_b_voltage
+      current: sensor.sigen_inverter_phase_b_current
+  - name: Phase C (L3)
+    grid:
+      power: sensor.sigen_plant_grid_phase_c_active_power
+      energy_import: sensor.sigen_plant_grid_import_energy_phase_c
+      energy_export: sensor.sigen_plant_grid_export_energy_phase_c
+    load:
+      power: sensor.sigen_plant_consumed_power_phase_c
+      energy: sensor.sigen_plant_consumed_energy_phase_c_daily
+    inverter:
+      power: sensor.sigen_plant_phase_c_active_power
+      energy: sensor.sigen_inverter_phase_c_energy_daily
+      voltage: sensor.sigen_inverter_phase_c_voltage
+      current: sensor.sigen_inverter_phase_c_current
+circuits:
+  - name: HVAC
+    icon: mdi:air-conditioner
+    power: sensor.hvac_phase_a_power
+  - name: HVAC
+    icon: mdi:air-conditioner
+    power: sensor.hvac_phase_b_power
+  - name: HVAC
+    icon: mdi:air-conditioner
+    power: sensor.hvac_phase_c_power
+devices:
+  - entity: sensor.circuit_oven_power
+    phase: A
+    icon: mdi:stove
+  - entity: sensor.house_lights_power
+    phase: A
+    icon: mdi:lightbulb-group
+  - entity: sensor.workbench_gpo_2_power
+    phase: B
+  - entity: sensor.workbench_gpo_3_power
+    phase: C
+  - entity: sensor.study_power_circuit_power
+    phase: C
+  - entity: sensor.hvac_power
+    exclude: true
+  - entity: sensor.hvac_energy
+    exclude: true
